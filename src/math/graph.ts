@@ -11,6 +11,10 @@ class Graph {
     this.segments = segments;
   }
 
+  hash() {
+    return JSON.stringify(this);
+  }
+
   static load(info: TGraphInfo) {
     const points = [];
     const segments = [];
