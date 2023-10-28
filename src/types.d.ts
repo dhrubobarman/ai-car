@@ -1,7 +1,12 @@
+import Point from "./primitives/point";
+
 export type TPoint = {
   x: number;
   y: number;
 };
+
+export type TPointOrPoint = TPoint | Point;
+
 export type TSegment = {
   p1: TPoint;
   p2: TPoint;

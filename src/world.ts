@@ -1,6 +1,9 @@
+import Building from "./items/buildings";
+import Tree from "./items/tree";
 import Graph from "./math/graph";
-import { add, scale } from "./math/utils";
+import { add, distance, lerp, scale } from "./math/utils";
 import Envelope from "./primitives/envelope";
+import Point from "./primitives/point";
 import Polygon from "./primitives/polygon";
 import Segment from "./primitives/segment";
 
@@ -14,14 +17,17 @@ class World {
   buildingWidth: number;
   buildingMinLength: number;
   spacing: number;
-  buildings: Segment[];
+  buildings: Building[];
+  trees: Tree[];
+  treeSize: number;
   constructor(
     graph: Graph,
     roadWidth = 100,
     roadRoundness = 10,
     buildingWidth = 150,
     buildingMinLength = 150,
-    spacing = 50
+    spacing = 50,
+    treeSize = 160
   ) {
     this.graph = graph;
     this.roadWidth = roadWidth;
@@ -29,10 +35,12 @@ class World {
     this.buildingWidth = buildingWidth;
     this.buildingMinLength = buildingMinLength;
     this.spacing = spacing;
+    this.treeSize = treeSize;
 
     this.envelopes = [];
     this.roadBorders = [];
     this.buildings = [];
+    this.trees = [];
 
     this.generate();
   }
@@ -46,6 +54,70 @@ class World {
     }
     this.roadBorders = Polygon.union(this.envelopes.map((e) => e.poly));
     this.buildings = this.generateBuildings();
+    this.trees = this.generateTrees();
+  }
+
+  private generateTrees() {
+    const points = [
+      ...this.roadBorders.map((s) => [s.p1, s.p2]).flat(),
+      ...this.buildings.map((b) => b.base.points).flat(),
+    ];
+
+    const left = Math.min(...points.map((p) => p.x));
+    const right = Math.max(...points.map((p) => p.x));
+    const top = Math.min(...points.map((p) => p.y));
+    const bottom = Math.max(...points.map((p) => p.y));
+
+    const illigalPolys = [
+      ...this.buildings.map((b) => b.base),
+      ...this.envelopes.map((e) => e.poly),
+    ];
+
+    const trees: Tree[] = [];
+    let tryCount = 0;
+    while (tryCount < 100) {
+      const p = new Point(
+        lerp(left, right, Math.random()),
+        lerp(bottom, top, Math.random())
+      );
+
+      // Check if the tree inside or nearby building / road
+      let keep = true;
+      for (const poly of illigalPolys) {
+        if (poly.containsPoint(p) || poly.distanceToPoint(p) < this.treeSize) {
+          keep = false;
+          break;
+        }
+      }
+
+      // Check if too close to other trees
+      if (keep) {
+        for (const tree of trees) {
+          if (distance(tree.center, p) < this.treeSize) {
+            keep = false;
+            break;
+          }
+        }
+      }
+
+      // Avoiding trees in the middle of nowhere
+      if (keep) {
+        let closeToSomething = false;
+        for (const poly of illigalPolys) {
+          if (poly.distanceToPoint(p) < this.treeSize * 2) {
+            closeToSomething = true;
+            break;
+          }
+        }
+        keep = closeToSomething;
+      }
+      if (keep) {
+        trees.push(new Tree(p, this.treeSize));
+        tryCount = 0;
+      }
+      tryCount++;
+    }
+    return trees;
   }
 
   private generateBuildings() {
@@ -93,19 +165,24 @@ class World {
     for (const seg of supports) {
       bases.push(new Envelope(seg, this.buildingWidth).poly);
     }
+
+    const eps = 0.001;
     for (let i = 0; i < bases.length - 1; i++) {
       for (let j = i + 1; j < bases.length; j++) {
-        if (bases[i].intersectsPoly(bases[j])) {
+        if (
+          bases[i].intersectsPoly(bases[j]) ||
+          bases[i].distanceToPoly(bases[j]) < this.spacing - eps
+        ) {
           bases.splice(j, 1);
           j--;
         }
       }
     }
 
-    return bases;
+    return bases.map((b) => new Building(b));
   }
 
-  draw(ctx: CanvasRenderingContext2D) {
+  draw(ctx: CanvasRenderingContext2D, viewPoint: Point) {
     for (const envelope of this.envelopes) {
       envelope.draw(ctx, {
         fillStyle: "#BBB",
@@ -123,8 +200,12 @@ class World {
     for (const seg of this.roadBorders) {
       seg.draw(ctx, { strokeStyle: "white", lineWidth: 4 });
     }
-    for (const bld of this.buildings) {
-      bld.draw(ctx);
+    const items = [...this.buildings, ...this.trees].sort(
+      (a, b) =>
+        b.base.distanceToPoint(viewPoint) - a.base.distanceToPoint(viewPoint)
+    );
+    for (const item of items) {
+      item.draw(ctx, viewPoint);
     }
   }
 }

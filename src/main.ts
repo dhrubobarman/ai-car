@@ -1,5 +1,6 @@
 import GraphEditor from "./graphEditor";
 import Graph from "./math/graph";
+import { scale } from "./math/utils";
 import "./style.css";
 import Viewport from "./veiwport";
 import World from "./world";
@@ -21,12 +22,18 @@ const world = new World(graph);
 const viewport = new Viewport(canvas);
 const graphEditor = new GraphEditor(viewport, graph);
 
+let oldGraphHash = graph.hash();
+
 animate();
 
 function animate() {
   viewport.reset();
-  world.generate();
-  world.draw(ctx);
+  if (graph.hash() !== oldGraphHash) {
+    world.generate();
+    oldGraphHash = graph.hash();
+  }
+  const viewPoint = scale(viewport.getOffset(), -1);
+  world.draw(ctx, viewPoint);
   ctx.globalAlpha = 0.2;
   graphEditor.display();
   requestAnimationFrame(animate);
