@@ -1,18 +1,18 @@
-import { add, scale, subtract } from "../math/utils";
+import { add, average, getFake3dPoint, scale, subtract } from "../math/utils";
 import Point from "../primitives/point";
 import Polygon from "../primitives/polygon";
 
 class Building {
   base: Polygon;
-  heightCoef: number;
-  constructor(base: Polygon, heightCoef = 0.4) {
+  height: number;
+  constructor(base: Polygon, height = 200) {
     this.base = base;
-    this.heightCoef = heightCoef;
+    this.height = height;
   }
 
   draw(ctx: CanvasRenderingContext2D, viewPoint: Point) {
     const topPoints = this.base.points.map((p) =>
-      add(p, scale(subtract(p, viewPoint), this.heightCoef))
+      getFake3dPoint(p, viewPoint, this.height * 0.6)
     );
     const ceiling = new Polygon(topPoints);
 
@@ -27,14 +27,58 @@ class Building {
       ]);
       sides.push(poly);
     }
-    this.base.draw(ctx, { fillStyle: "white", strokeStyle: "#AAA" });
     sides.sort(
       (a, b) => b.distanceToPoint(viewPoint) - a.distanceToPoint(viewPoint)
     );
+
+    const baseMidpoints = [
+      average(this.base.points[0], this.base.points[1]),
+      average(this.base.points[2], this.base.points[3]),
+    ];
+
+    const topMidpoints = baseMidpoints.map((p) =>
+      getFake3dPoint(p, viewPoint, this.height)
+    );
+
+    const roofPolys = [
+      new Polygon([
+        ceiling.points[0],
+        ceiling.points[3],
+        topMidpoints[1],
+        topMidpoints[0],
+      ]),
+      new Polygon([
+        ceiling.points[2],
+        ceiling.points[1],
+        topMidpoints[0],
+        topMidpoints[1],
+      ]),
+    ];
+    roofPolys.sort(
+      (a, b) => b.distanceToPoint(viewPoint) - a.distanceToPoint(viewPoint)
+    );
+
+    this.base.draw(ctx, {
+      fillStyle: "white",
+      strokeStyle: "rgba(0,0,0,0.2)",
+      lineWidth: 20,
+    });
     for (const side of sides) {
       side.draw(ctx, { fillStyle: "white", strokeStyle: "#AAA" });
     }
-    ceiling.draw(ctx, { fillStyle: "white", strokeStyle: "#AAA" });
+    ceiling.draw(ctx, {
+      fillStyle: "white",
+      strokeStyle: "white",
+      lineWidth: 6,
+    });
+    for (const poly of roofPolys) {
+      poly.draw(ctx, {
+        fillStyle: "#D44",
+        strokeStyle: "#C44",
+        lineWidth: 8,
+        linecap: "round",
+      });
+    }
   }
 }
 

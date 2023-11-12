@@ -62,7 +62,9 @@ class Segment {
       strokeStyle = "black",
       setLineDash = [],
       fillStyle,
+      ...others
     } = otherProps;
+    Object.assign(ctx, { ...others });
 
     ctx.beginPath();
     ctx.strokeStyle = strokeStyle;

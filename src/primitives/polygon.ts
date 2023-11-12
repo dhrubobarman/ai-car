@@ -116,7 +116,9 @@ class Polygon {
       strokeStyle = "blue",
       lineWidth = 2,
       fillStyle = "rgba(0,0,255,0.3)",
+      ...others
     } = otherProps;
+    Object.assign(ctx, { ...others });
     ctx.beginPath();
     ctx.fillStyle = fillStyle;
     ctx.lineWidth = lineWidth;

@@ -23,4 +23,5 @@ export type TDrawProps = {
   setLineDash?: number[];
   fillStyle?: CanvasRenderingContext2D["fillStyle"];
   lineWidth?: CanvasRenderingContext2D["lineWidth"];
+  linecap?: CanvasRenderingContext2D["lineCap"];
 };
