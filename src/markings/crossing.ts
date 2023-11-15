@@ -1,14 +1,8 @@
-import { Segment, Point } from "../primitives";
-import { add, angle, perpendicular, scale, translate } from "../math/utils";
-import { Envelope, Polygon } from "../primitives";
+import { add, perpendicular, scale } from "../math/utils";
+import { Point, Segment } from "../primitives";
+import Marking from "./marking";
 
-class Crossing {
-  center: Point;
-  directionVector: Point;
-  width: number;
-  height: number;
-  support: Segment;
-  poly: Polygon;
+class Crossing extends Marking {
   borders: Segment[];
   constructor(
     center: Point,
@@ -16,16 +10,7 @@ class Crossing {
     width: number,
     height: number
   ) {
-    this.center = center;
-    this.directionVector = directionVector;
-    this.width = width;
-    this.height = height;
-
-    this.support = new Segment(
-      translate(center, angle(directionVector), height / 2),
-      translate(center, angle(directionVector), -height / 2)
-    );
-    this.poly = new Envelope(this.support, width, 0).poly;
+    super(center, directionVector, width, height);
     this.borders = [this.poly.segments[0], this.poly.segments[2]];
   }
 

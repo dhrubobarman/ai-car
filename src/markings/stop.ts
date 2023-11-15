@@ -1,31 +1,17 @@
 import { Segment, Point } from "../primitives";
-import { angle, translate } from "../math/utils";
-import { Envelope, Polygon } from "../primitives";
+import { angle } from "../math/utils";
+import Marking from "./marking";
 
-class Stop {
-  center: Point;
-  directionVector: Point;
-  width: number;
-  height: number;
-  support: Segment;
-  poly: Polygon;
+class Stop extends Marking {
   border: Segment;
+
   constructor(
     center: Point,
     directionVector: Point,
     width: number,
     height: number
   ) {
-    this.center = center;
-    this.directionVector = directionVector;
-    this.width = width;
-    this.height = height;
-
-    this.support = new Segment(
-      translate(center, angle(directionVector), height / 2),
-      translate(center, angle(directionVector), -height / 2)
-    );
-    this.poly = new Envelope(this.support, width, 0).poly;
+    super(center, directionVector, width, height);
     this.border = this.poly.segments[2];
   }
 
@@ -35,7 +21,7 @@ class Stop {
       fillStyle: "white",
       strokeStyle: "white",
     });
-    // this.poly.draw(ctx);
+
     ctx.save();
     ctx.translate(this.center.x, this.center.y);
     ctx.rotate(angle(this.directionVector) - Math.PI / 2);
