@@ -72,12 +72,23 @@ export const crossingBtn = createElement({
   type: "button",
 }) as HTMLButtonElement;
 
+export const startBtn = createElement({
+  insertToControls: false,
+  innerText: "🚗",
+  id: "startBtn",
+  onclick: () => setMode("start"),
+  className: " shadow-md bg-[var(--background)] icon-button",
+  title: "Start Point",
+  type: "button",
+}) as HTMLButtonElement;
+
 const controlClids = [
   disposeButton,
   saveButton,
   graphBtn,
   stopBtn,
   crossingBtn,
+  startBtn,
 ];
 for (const clild of controlClids) {
   controlsContainer.appendChild(clild);

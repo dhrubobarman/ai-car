@@ -1,4 +1,5 @@
 import CrossingEditor from "./crossingEditor";
 import GraphEditor from "./graphEditor";
 import StopEditor from "./stopEditor";
-export { CrossingEditor, GraphEditor, StopEditor };
+import StartEditor from "./startEditor";
+export { CrossingEditor, GraphEditor, StopEditor, StartEditor };
