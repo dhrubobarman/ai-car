@@ -1,9 +1,11 @@
-import GraphEditor from "./graphEditor";
+import "./elements";
+import { crossingBtn, graphBtn, stopBtn } from "./elements";
 import Graph from "./math/graph";
-import { scale } from "./math/utils";
+import { scale } from "./math";
 import "./style.css";
 import Viewport from "./veiwport";
 import World from "./world";
+import { CrossingEditor, StopEditor, GraphEditor } from "./editors";
 
 const LOCAL_STORE_NAME = "GRAPH_FROM_SELF_DRIVING_CAR";
 
@@ -21,9 +23,11 @@ const world = new World(graph);
 
 const viewport = new Viewport(canvas);
 const graphEditor = new GraphEditor(viewport, graph);
+const stopEditor = new StopEditor(viewport, world);
+const crossingEditor = new CrossingEditor(viewport, world);
 
 let oldGraphHash = graph.hash();
-
+setMode("graph");
 animate();
 
 function animate() {
@@ -36,51 +40,45 @@ function animate() {
   world.draw(ctx, viewPoint);
   ctx.globalAlpha = 0.2;
   graphEditor.display();
+  stopEditor.display();
+  crossingEditor.display();
   requestAnimationFrame(animate);
 }
 
 // CONTROLS
-function dispose() {
+export function dispose() {
   graphEditor.dispose();
+  world.markings.length = 0;
 }
-function save() {
+export function save() {
   localStorage.setItem(LOCAL_STORE_NAME, JSON.stringify(graph));
 }
+export function setMode(mode: "graph" | "stop" | "crossing") {
+  disableEditors();
 
-const controls = document.querySelector("#controls")!;
+  switch (mode) {
+    case "graph":
+      graphBtn.disabled = true;
+      graphEditor.enable();
+      break;
+    case "stop":
+      stopBtn.disabled = true;
+      stopEditor.enable();
+      break;
+    case "crossing":
+      crossingBtn.disabled = true;
+      crossingEditor.enable();
+      break;
+    default:
+      break;
+  }
+}
 
-type TCreateElementProps = {
-  element?: string;
-  insertToControls?: boolean;
-} & Partial<HTMLElement>;
-const createElement = ({
-  element = "button",
-  insertToControls = true,
-  ...others
-}: TCreateElementProps) => {
-  const elem = document.createElement(element);
-  Object.assign(elem, others);
-  if (insertToControls) controls.appendChild(elem);
-  return elem;
-};
-const controlsContainer = createElement({
-  element: "div",
-  id: "controls-container",
-  className:
-    "flex absolute bottom-0 left-0 right-0 justify-center items-center min-h-[20px] gap-2",
-});
-
-const disposeButton = createElement({
-  insertToControls: false,
-  innerText: "🗑️",
-  onclick: dispose,
-});
-const saveButton = createElement({
-  insertToControls: false,
-  innerText: "💾",
-  onclick: save,
-});
-const controlClids = [disposeButton, saveButton];
-for (const clild of controlClids) {
-  controlsContainer.appendChild(clild);
+function disableEditors() {
+  graphEditor.disable();
+  stopEditor.disable();
+  crossingEditor.disable();
+  graphBtn.disabled = false;
+  stopBtn.disabled = false;
+  crossingBtn.disabled = false;
 }

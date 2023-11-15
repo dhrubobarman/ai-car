@@ -1,6 +1,5 @@
-import { add, average, getFake3dPoint, scale, subtract } from "../math/utils";
-import Point from "../primitives/point";
-import Polygon from "../primitives/polygon";
+import { average, getFake3dPoint } from "../math/utils";
+import { Polygon, Point } from "../primitives";
 
 class Building {
   base: Polygon;

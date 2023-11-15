@@ -153,7 +153,9 @@ canvas {
 
 button {
   --color: white;
-  --background: #4b684d;
+  --hover-bg: #580a0a;
+  --background: #2a2a2a;
+  --disabled-bg: #78787e;
   transition: all 0.3s;
   cursor: pointer;
   background: var(--background);
@@ -165,11 +167,23 @@ button {
   display: block;
 }
 button:hover {
-  background: var(--color);
+  background: var(--hover-bg);
   color: var(--background);
 }
 #controls {
   display: grid;
   gap: 5px;
   align-items: flex-start;
+}
+.icon-button {
+  padding: 8px;
+}
+button:disabled {
+  background: var(--disabled-bg);
+  filter: grayscale(100%);
+  transition: 0.1s all;
+}
+button:disabled:hover {
+  background: var(--disabled-bg);
+  color: var(--color);
 }

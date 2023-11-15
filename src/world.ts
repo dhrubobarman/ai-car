@@ -1,11 +1,8 @@
-import Building from "./items/buildings";
-import Tree from "./items/tree";
+import { TMarkings } from "./editors/types";
+import { Building, Tree } from "./items";
 import Graph from "./math/graph";
 import { add, distance, lerp, scale } from "./math/utils";
-import Envelope from "./primitives/envelope";
-import Point from "./primitives/point";
-import Polygon from "./primitives/polygon";
-import Segment from "./primitives/segment";
+import { Envelope, Point, Polygon, Segment } from "./primitives";
 
 class World {
   graph: Graph;
@@ -20,6 +17,8 @@ class World {
   buildings: Building[];
   trees: Tree[];
   treeSize: number;
+  laneGuides: Segment[];
+  markings: TMarkings[];
   constructor(
     graph: Graph,
     roadWidth = 100,
@@ -41,6 +40,9 @@ class World {
     this.roadBorders = [];
     this.buildings = [];
     this.trees = [];
+    this.laneGuides = [];
+
+    this.markings = [];
 
     this.generate();
   }
@@ -55,6 +57,20 @@ class World {
     this.roadBorders = Polygon.union(this.envelopes.map((e) => e.poly));
     this.buildings = this.generateBuildings();
     this.trees = this.generateTrees();
+
+    this.laneGuides.length = 0;
+    this.laneGuides = this.generateLaneGuides();
+  }
+
+  private generateLaneGuides() {
+    const tempEnvelopes: Envelope[] = [];
+    for (const seg of this.graph.segments) {
+      tempEnvelopes.push(
+        new Envelope(seg, this.roadWidth / 2, this.roadRoundness)
+      );
+    }
+    const segments = Polygon.union(tempEnvelopes.map((e) => e.poly));
+    return segments;
   }
 
   private generateTrees() {
@@ -189,6 +205,9 @@ class World {
         strokeStyle: "#BBB",
         lineWidth: 15,
       });
+    }
+    for (const marking of this.markings) {
+      marking.draw(ctx);
     }
     for (const seg of this.graph.segments) {
       seg.draw(ctx, {
